@@ -2,3 +2,23 @@
 import sys
 import random
 
+# explaining here what I would like to do so that i can once again arrange my thoughts
+"""
+The .ftx file format was designed to facilitate simple data storage and handling for the SABR project, however
+its utility means that it will likely outrange it in usage. To that end, and to better exhibit the virtue of 
+'one tool, one purpose', this script and collection of modules will seek to process FTXs and parse their data
+to be used in downstream analysis. By making the steps discreet, more efficient analysis can be carried out.
+
+For now this module will likely only concern itself with the SABR project and what it is interested in. In future,
+it may be useful as a diagnostic or part of a larger workflow.
+
+Current goals:
+- line by line, understand the case and results. Case is determined by ground truth, results through comparison
+- generate output files, each containing the results for the isolated aspect of interest. As of right now, that includes
+  unspliced, spliced, anad internal cases.
+
+thought: need to keep track of names and it is enough for now to realize this: that you need to sleep earlier and get to campus with more time before having to go home to feed nori.
+"""
+
+gtfile = sys.argv[1]
+expfiles = sys.argv[2:]
