@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import files
 import sys
 import random
 
@@ -19,6 +20,55 @@ Current goals:
 
 thought: need to keep track of names and it is enough for now to realize this: that you need to sleep earlier and get to campus with more time before having to go home to feed nori.
 """
+def casefinder(coords, rlen):
+  if len(coords) > 2:
+    return "unspliced"
+
+  if len(coords) == 2:
+    return "spliced"
+  
+  if lenfinder(coords[0]) + lenfinder(coords[1]) > rlen:
+    return "spliced"
+
+  return "internal"
+
+def gapfinder(coords):
+  if lenfinder(coords[-1]) > lenfinder(coords[0]):
+    return "fivep"
+  elif lenfinder(coords[-1]) == lenfinder(coords[0]):
+    return "equal"
+  else:
+    return "threep"
+
+def lenfinder(coord):
+  return coord[1] - coord[0]
+
 
 gtfile = sys.argv[1]
 expfiles = sys.argv[2:]
+
+# The file has a few fields, but realy what needs to happen is to store the information in an efficient way. two dicts? hash
+
+gtnames = []
+chroms = []
+strands = []
+gt_coords = []
+exp_name = []
+exp_coords = []
+cases = []
+detected = []
+correct = []
+o_len = []
+isize = []
+warns = []
+
+with files.getfp(expfiles[0]) as fp:
+  for line in fp:
+    gtline, expline = line.split().rstrip()
+
+    strands.append(gtline[-1])
+
+    gt = gtline.split('|')
+
+    gtnames.append(gt[1])
+    
