@@ -20,32 +20,40 @@ Current goals:
 
 thought: need to keep track of names and it is enough for now to realize this: that you need to sleep earlier and get to campus with more time before having to go home to feed nori.
 """
-def casefinder(coords, rlen):
-  if len(coords) > 2:
+def casefinder(coords, rl):
+  if len(coords) < 2:
     return "unspliced"
 
   if len(coords) == 2:
     return "spliced"
-  
-  if lenfinder(coords[0]) + lenfinder(coords[1]) > rlen:
+
+  print(lenfinder(coords[0].split('-')), lenfinder(coords[1].split('-')))  
+  if lenfinder(coords[0].split('-')) + lenfinder(coords[1].split('-')) > rl:
     return "spliced"
 
   return "internal"
 
 def gapfinder(coords):
-  if lenfinder(coords[-1]) > lenfinder(coords[0]):
+  if lenfinder(coords[-1].split('-')) > lenfinder(coords[0].split('-')):
     return "fivep"
-  elif lenfinder(coords[-1]) == lenfinder(coords[0]):
+  elif lenfinder(coords[-1].split('-')) == lenfinder(coords[0].split('-')):
     return "equal"
   else:
     return "threep"
 
 def lenfinder(coord):
-  return coord[1] - coord[0]
+  return int(coord[1]) - int(coord[0]) + 1
 
 
-gtfile = sys.argv[1]
-expfiles = sys.argv[2:]
+def rlenfinder(coords):
+  totrl = 0
+
+  for coord in coords:
+    totrl += lenfinder(coord.split('-'))
+
+  return totrl
+
+file = sys.argv[1]
 
 # The file has a few fields, but realy what needs to happen is to store the information in an efficient way. two dicts? hash
 
@@ -54,7 +62,9 @@ chroms = []
 strands = []
 gt_coords = []
 exp_name = []
+exp_chroms = []
 exp_coords = []
+exp_strands = []
 cases = []
 detected = []
 correct = []
@@ -62,13 +72,69 @@ o_len = []
 isize = []
 warns = []
 
-with files.getfp(expfiles[0]) as fp:
+rlen = None
+with files.getfp(file) as fp:
   for line in fp:
-    gtline, expline = line.split().rstrip()
+    has_MSA = False
+    MSA_names = []
+    warn_needed = False
+
+    gtline, expline = line.rstrip().split()
 
     strands.append(gtline[-1])
 
     gt = gtline.split('|')
 
-    gtnames.append(gt[1])
-    
+    chrom, gtname, _, gtcrd, strand = gtline.split('|')
+
+    gtcrds = gtcrd.split(',')
+    strand = strand[-1]
+
+    # warning checks
+
+    # MSA
+    if '~' in expline:
+      warn_needed = True
+      has_MSA = True
+
+
+    explines = expline.split("~")
+    for expl in explines:
+      print(expl)
+      if expl != "None":
+        if expl.endswith('|'): expl = expl[0:-1]
+        echrom, ename, estrand, ecrd = expl.split('|')
+
+
+      else:
+        echrom, ename, estrand, ecrd = "None", "None", "None", "None"
+      
+
+      gtnames.append(gtname)
+      chroms.append(chrom)
+      strands.append(strand)
+      gt_coords.append(';'.join(gtcrds))
+      exp_name.append(ename)
+      exp_coords.append(echrom)
+      exp_strands.append(estrand)
+
+      if rlen == None:
+        rlen = rlenfinder(gtcrds)
+
+      if len(gtcrds) > 2:
+        print(gtcrd)
+        print(casefinder(gtcrds, rlen))
+        if random.random() < 0.0000010:
+          break
+
+    if not warn_needed:
+      warns.append("-")
+      continue
+
+    if has_MSA:
+      for name in MSA_names:
+        warns.append("Part of an MSA. Other members:", ";".join(MSA_names))
+
+    if len(warns) != len(gtnames):
+      print(len(warns), len(gtnames))
+
