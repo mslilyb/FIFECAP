@@ -36,4 +36,8 @@ Here is a non-exhaustive list of everything I want FToolboX to be able to do:
 * Replicate functionality of `accfinder`, but with better/more EASILY maintained structure. 
 * Create a plotting module/devise 'plottable' file format
 * account for read length in internal exon detection and performance evaluation
-*
+
+
+### Analysis Future Directions
+* What kinds of adjustments do aligners tend to make? do they jam a read onto mismatches,  or shift them
+	* Are they biased in some direction?

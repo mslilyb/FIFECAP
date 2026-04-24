@@ -20,6 +20,24 @@ Current goals:
 
 thought: need to keep track of names and it is enough for now to realize this: that you need to sleep earlier and get to campus with more time before having to go home to feed nori.
 """
+def accfinder(ec, gc, cs):
+  errtyp = ''
+  shift = None
+
+  if len(gc) < len(ec):
+    errtyp += 'false_splice'
+    if cs == 'unspliced': return errtyp, coverage(ec, gc)
+  
+  elif len(gc) > len(ec):
+    errtyp += 'missed_splice'
+
+  else:
+    errtyp += 'n/a'
+
+  return errtyp, coverage(ec, gc)
+
+  # to add later LATER DAMMIT: is it truncated or shifted? In what direction?
+
 def casefinder(coords, rl):
   if len(coords) < 2:
     return "unspliced"
@@ -53,7 +71,6 @@ def coverage(ex, gt):
 
   return hits / totlen
 
-
 def gapfinder(coords):
   if lenfinder(coords[-1]) > lenfinder(coords[0]):
     return "fivep", lenfinder(coords[1])
@@ -62,23 +79,16 @@ def gapfinder(coords):
   else:
     return "threep", lenfinder(coords[-1])
 
+def internallen(crds):
+  sizes = []
+  for i in range(1, len(crds)-1):
+    sizes.append(lenfinder(crds[i]))
+
+  return max(sizes)
+
 def lenfinder(coord):
   beg, end = coordfinder(coord)
   return end - beg + 1
-
-def accfinder(ec, gc, cs):
-  errtyp = ''
-  shift = None
-
-  if len(gc) < len(ecs):
-    ertyp += 'false_splice'
-    if cs is 'unspliced': return errtyp, coverage(ec, gc)
-  
-  elif len(gc) > len(ec):
-    errtyp += 'missed_splice'
-
-
-
 
 def rlenfinder(coords):
   totrl = 0
@@ -105,8 +115,10 @@ detected = []
 correct = []
 o_typs = []
 o_lens = []
-isize = []
+iesizes = []
 warns = []
+covs = []
+e_typs = []
 # msa_fams = {}
 
 rlen = None
@@ -114,6 +126,7 @@ with files.getfp(file) as fp:
   for line in fp:
     # has_MSA = False
     warn_needed = False
+    iesize = "N/A"
 
     gtline, expline = line.rstrip().split()
 
@@ -135,9 +148,13 @@ with files.getfp(file) as fp:
       has_MSA = True
 
     msa_fam = []
-    case = casefinder(gtcrds)
+    case = casefinder(gtcrds, rlen)
 
-    o_typ, o_len = gapfinder(gt_crds)
+    o_typ, o_len = gapfinder(gtcrds)
+
+    if case == "internal":
+      iesize = internallen(gtcrds)
+
 
     explines = expline.split("~")
     for expl in explines:
@@ -154,6 +171,7 @@ with files.getfp(file) as fp:
       cases.append(case)
       chroms.append(chrom)
       strands.append(strand)
+      iesizes.append(iesize)
 
       exp_chroms.append(echrom)
       exp_coords.append(";".join(ecrds))
@@ -163,6 +181,14 @@ with files.getfp(file) as fp:
       gtnames.append(gtname)
       gt_coords.append(';'.join(gtcrds))
 
+      o_typs.append(o_typ)
+      o_lens.append(o_len)
+
+      etyp, cov = accfinder(gtcrds, ecrds, case)
+
+      covs.append(cov)
+      e_typs.append(etyp)
+
       if not warn_needed:
         warns.append("-")
         continue
@@ -171,7 +197,7 @@ with files.getfp(file) as fp:
         warns.append("has_MSA")
 
 
-
+ 
 # Stupid. Length checks.
 assert(len(gtnames) == len(exp_name))
 assert(len(gtnames) == len(strands))
@@ -182,4 +208,12 @@ assert(len(gtnames) == len(gt_coords))
 assert(len(gtnames) == len(exp_coords))
 assert(len(gtnames) == len(warns))
 
-print(warns.count("warning!"))
+#print(gtname, chrom, strand, gtcrds, isize, case, ename, echrom, estrand, ecrds, o_typ, o_len, cov)
+
+# Output
+
+print("gt_read", "gt_chrom", "gt_strand", "gt_coords", "ie_size", "case", "ex_read", "ex_chrom", "ex_strand", "ex_coords", "oh_type", "oh_len", "coverage", "err_typ", sep=',')
+
+
+for i in range(len(gtnames)):
+  print(gtnames[i], chroms[i], strands[i], gt_coords[i], iesizes[i], cases[i], exp_name[i], exp_chroms[i], exp_strands[i],  exp_coords[i], o_typs[i], o_lens[i], covs[i], e_typs[i], sep=',')
